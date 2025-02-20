@@ -381,32 +381,39 @@ app.post('/draw', async (c) => {
         if (item.box_2d && item.box_2d.length === 4) {
           const [ymin, xmin, ymax, xmax] = item.box_2d;
           
-          // Convert from 0-1000 range to actual pixels
-          const x = (xmin / 1000) * processedDimensions.width;
-          const y = (ymin / 1000) * processedDimensions.height;
-          const width = ((xmax - xmin) / 1000) * processedDimensions.width;
-          const height = ((ymax - ymin) / 1000) * processedDimensions.height;
+          // First normalize to 0-1 range (like Google's implementation)
+          const normalizedBox = {
+            x: xmin / 1000,
+            y: ymin / 1000,
+            width: (xmax - xmin) / 1000,
+            height: (ymax - ymin) / 1000
+          };
+          
+          // Then scale to canvas dimensions
+          const x = normalizedBox.x * processedDimensions.width;
+          const y = normalizedBox.y * processedDimensions.height;
+          const width = normalizedBox.width * processedDimensions.width;
+          const height = normalizedBox.height * processedDimensions.height;
 
-          // Draw box
+          // Draw box with correct coordinates
           ctx.strokeStyle = 'red';
           ctx.lineWidth = 2;
           ctx.strokeRect(x, y, width, height);
 
-          // Draw label
+          // Draw label with better visibility
           const label = `${item.label}: ${item.text || ''}`;
-          ctx.font = '8px Arial';
+          ctx.font = '12px Arial'; // Increased font size
           const metrics = ctx.measureText(label);
           const padding = 4;
 
-          // // Background for label
-          // ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-          // ctx.fillRect(
-          //   x,
-          //   // y - 24,
-          //   y,
-          //   metrics.width + padding * 2,
-          //   24
-          // );
+          // Background for label
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+          ctx.fillRect(
+            x,
+            y - 20, // Position above box
+            metrics.width + padding * 2,
+            20
+          );
 
           // Text
           ctx.fillStyle = 'red';
